@@ -33,6 +33,9 @@ int main()
 {
 
 
+    uint16_t  res[32][2];
+
+
     int y = ioperm(0xE000, 32*8, 1);
     printf("%d\r\n", y);
 
@@ -41,11 +44,37 @@ int main()
     {
 
         uint16_t x = inb(0xE000+i);
-        printf("%03d : %X\r\n", i, x);
+        res[i][0] = x;
     
     }
     
-    /*
+    
+    for (i = 0; i < 32; i ++)
+    {
+
+        //outb(0xE000+i, 0x00);
+    
+    }
+    
+    for (i = 0; i < 32; i ++)
+    {
+
+        uint16_t x = inb(0xE000+i);
+        res[i][1] = x;
+    
+    }
+  
+  
+    for (i = 0; i < 32; i ++)
+    {
+
+        printf("%03d : %5X\t\t%5X\r\n", i, res[i][0], res[i][1]);
+
+    }
+  
+  
+  
+     /*
 
     int fd;
 
