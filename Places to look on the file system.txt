@@ -1,0 +1,14 @@
+
+cat /sys/module/snd_emu10k1/drivers/pci\:snd_emu10k1/0000\:04\:01.0/resource
+
+
+
+
+
+To add files to the Windows 95 installation:
+
+ sudo mount -o loop,offset=32256  /usr/lib/windows95/resources/app/images/windows95.img /mnt/<mount name>
+
+
+
+
