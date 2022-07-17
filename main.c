@@ -28,12 +28,17 @@ lspci -d 1102:0002 -nvv
 #include <stdint.h>
 #include <stdio.h>
 #include <sys/io.h>
+#include <unistd.h>
+#include <time.h>
 
 int main()
 {
 
+    printf("CLOCKS_PER_SECOND: %ld\r\n", CLOCKS_PER_SEC);
+    usleep(2);
 
-    uint16_t  res[32][2];
+
+    uint32_t  res[32][2];
 
 
     int y = ioperm(0xE000, 32*8, 1);
@@ -43,7 +48,7 @@ int main()
     for (i = 0; i < 32; i ++)
     {
 
-        uint16_t x = inb(0xE000+i);
+        uint32_t x = inl(0xE000+i*4);
         res[i][0] = x;
     
     }
@@ -55,15 +60,12 @@ int main()
         //outb(0xE000+i, 0x00);
     
     }
-    
-    outl(0x0, 0xE000 + 0);
-    
-    printf("    %08X\r\n", inl(0xE000 + 8));
+
     
     for (i = 0; i < 32; i ++)
     {
 
-        uint16_t x = inb(0xE000+i);
+        uint32_t x = inl(0xE000+i*4);
         res[i][1] = x;
     
     }
@@ -72,7 +74,7 @@ int main()
     for (i = 0; i < 32; i ++)
     {
 
-        printf("%03d : %5X\t\t%5X\r\n", i, res[i][0], res[i][1]);
+        printf("%03d : %11X\t\t%11X\r\n", i, res[i][0], res[i][1]);
 
     }
   
