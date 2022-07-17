@@ -1,0 +1,9 @@
+
+ALSA code:
+
+https://github.com/torvalds/linux/tree/master/sound/pci/emu10k1
+https://github.com/torvalds/linux/blob/master/include/sound/emu10k1.h
+
+
+
+

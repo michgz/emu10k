@@ -35,7 +35,35 @@ int main()
 {
 
     printf("CLOCKS_PER_SECOND: %ld\r\n", CLOCKS_PER_SEC);
-    usleep(2);
+
+    int y = ioperm(0xE000, 32*8, 1);
+    printf("%d\r\n", y);
+
+
+    int i;
+    for (i = 0; i < 100; i ++)
+    {
+        uint32_t x = inl(0xE000 + 4*4);
+        clock_t ck = clock();
+        printf("%ld :   %d\r\n", (uint64_t) ck, x);
+        usleep(100000);
+        
+        /*
+         * RESULT: The 0xE010 register appears to be a simple clock, counting up
+         *  at 3,000,000 ticks per second.
+         * 
+         *  Watch out that the clock() function appears to *NOT* be defined by
+         *  CLOCKS_PER_SEC, rather it's 617 ticks per second.
+         * 
+         */
+        
+        
+    }
+
+
+
+/*
+
 
 
     uint32_t  res[32][2];
@@ -79,7 +107,7 @@ int main()
     }
   
   
-  
+*/
      /*
 
     int fd;
