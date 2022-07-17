@@ -1,5 +1,10 @@
 
+CC = cc
+CPPFLAGS = -O2
+RM = rm -f
 
+all: main.c
+	$(CC) $(CPPFLAGS) $^
 
-all:
-	cc -O2 main.c
+clean:
+	$(RM) a.out
