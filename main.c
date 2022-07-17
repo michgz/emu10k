@@ -56,6 +56,10 @@ int main()
     
     }
     
+    outl(0x0, 0xE000 + 0);
+    
+    printf("    %08X\r\n", inl(0xE000 + 8));
+    
     for (i = 0; i < 32; i ++)
     {
 
