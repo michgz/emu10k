@@ -7,3 +7,14 @@ https://github.com/torvalds/linux/blob/master/include/sound/emu10k1.h
 
 
 
+KxProject (open source re-implementation of Windows driver):
+
+https://github.com/kxproject/kX-Audio-driver-Documentation
+
+
+
+ALSA tools (for setting up DSP):
+
+https://github.com/alsa-project/alsa-tools/tree/master/as10k1
+https://github.com/alsa-project/alsa-tools/tree/master/ld10k1
+https://github.com/alsa-project/alsa-tools/tree/master/qlo10k1
