@@ -1,20 +1,47 @@
 
 ALSA code:
 
+https://github.com/torvalds/linux/tree/master/sound/pci/Kconfig
 https://github.com/torvalds/linux/tree/master/sound/pci/emu10k1
 https://github.com/torvalds/linux/blob/master/include/sound/emu10k1.h
-
-
-
-
-KxProject (open source re-implementation of Windows driver):
-
-https://github.com/kxproject/kX-Audio-driver-Documentation
-
-
-
-ALSA tools (for setting up DSP):
+https://github.com/torvalds/linux/blob/master/drivers/input/gameport/emu10k1-gp.c
 
 https://github.com/alsa-project/alsa-tools/tree/master/as10k1
 https://github.com/alsa-project/alsa-tools/tree/master/ld10k1
 https://github.com/alsa-project/alsa-tools/tree/master/qlo10k1
+https://github.com/alsa-project/alsa-lib/blob/master/src/conf/cards/EMU10K1.conf
+https://github.com/alsa-project/alsa-lib/blob/master/src/conf/cards/EMU10K1X.conf
+https://github.com/alsa-project/alsa-lib/blob/master/include/sound/emu10k1.h
+https://github.com/alsa-project/alsa-lib/blob/master/include/sound/uapi/emu10k1.h
+https://github.com/alsa-project/alsa-lib/blob/master/src/pcm/pcm_hooks.c
+
+
+
+
+KxProject:
+
+https://github.com/kxproject/kx-audio-driver                (open source re-implementation of Windows driver)
+https://github.com/kxproject/kX-Audio-driver-Documentation  (has loads of documentation from Creative & others)
+
+
+
+
+EMU Tools (AS10K1 & FV10K1):
+
+https://sourceforge.net/projects/emu10k1/files/emu-tools/
+     - as10k1 appears to have been fully merged into ALSA project, but other stuff here
+        could be interesting
+   (Note: I've mirrored this at https://github.com/michgz/emu10k1-tools/  - possibly will develop further)
+
+
+
+Other docs related to EMU10K1 online:
+
+https://www-uxsup.csx.cam.ac.uk/pub/doc/suse/suse9.0/userguide-9.0/ch18s09.html
+https://mirror.apps.cam.ac.uk/pub/doc/suse/suse9.0/userguide-9.0/ch18s02.html
+
+https://emu10k1.tripod.com/_index.htm    (Not updated since 2001, but may be some things of interest remaining? "Links" page is pretty much all dead)
+https://emu10k1.tripod.com/hardware.htm  (Patent from Creative. Unfortunately Mr. X's analysis seems to have got lost with time)
+
+  (Note: this site mentions a "AS10K1" site by Daniel Bertrand. Has all of that information been subsumed into the "EMU Tools" repository?)
+
