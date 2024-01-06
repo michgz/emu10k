@@ -34,11 +34,43 @@ lspci -d 1102:0002 -nvv
 int main()
 {
 
+    int y = ioperm(0xE000, 32*8, 1);
+    printf("%d\r\n", y);
+    
+
+    outl(  (0x1UL << 16),   0xE000);
+    outl(  32,   0xE004);
+
+
+    outl(  (0x40UL << 16),   0xE000);
+    outl(  1,   0xE004);
+    
+    usleep(1);
+    
+    outl(  (0x2UL << 16),   0xE000);
+    uint32_t x = inl(0xE004);
+    
+    printf("%d\r\n", x);
+    
+    outl(  (0x6UL << 16),   0xE000);
+    x = inl(0xE004);
+    
+    printf("%9X\r\n", x);
+    
+    usleep(1000);
+    
+    outl(  (0x2UL << 16),   0xE000);
+    x = inl(0xE004);
+    
+    printf("%d\r\n", x);
+    
+    
+    
+/*
     printf("CLOCKS_PER_SECOND: %ld\r\n", CLOCKS_PER_SEC);
 
     int y = ioperm(0xE000, 32*8, 1);
     printf("%d\r\n", y);
-
 
     int i;
     for (i = 0; i < 100; i ++)
@@ -61,6 +93,46 @@ int main()
     }
 
 
+
+
+    uint32_t res [0x70][2];
+
+    unsigned int i, j;
+    for (j = 0; j < 0x6f; j ++)
+    {
+        for (i = 3; i <= 3; i ++)
+        {
+            outl((uint32_t) (((j+0) << 16) + i), 0xE000);
+            uint32_t x = inl(0xE004);
+            res[j][0] = x;
+        }
+
+        
+        
+        
+    }
+        usleep(2000);
+    for (j = 0; j < 0x6f; j ++)
+    {
+        for (i = 3; i <= 3; i ++)
+        {
+            outl((uint32_t) (((j+0) << 16) + i), 0xE000);
+            uint32_t x = inl(0xE004);
+            res[j][1] = x;
+        }
+
+        
+        
+        
+    }
+
+    for (j = 0; j < 0x6f; j ++)
+    {
+        printf("%d:\t\t%9X\t%9X\r\n", j, res[j][0], res[j][1]);
+    }
+
+
+*/
 
 /*
 
