@@ -66,7 +66,7 @@ int main()
     
     
     
-/*
+#if 0
     printf("CLOCKS_PER_SECOND: %ld\r\n", CLOCKS_PER_SEC);
 
     int y = ioperm(0xE000, 32*8, 1);
@@ -132,7 +132,7 @@ int main()
     }
 
 
-*/
+#endif // 0
 
 /*
 
