@@ -1,3 +1,13 @@
+/*
+ * Set up the AC'97 to accept data on a particular slot, and then run a
+ * test to make sure the EMU10K1 is sending to that slot.
+ * 
+ * This is of particular significance for STAC9708-based cards (such as 
+ * Live! 5.1) where the center & LFE channels are on a secondary AC'97
+ * slot.
+ * 
+ */
+ 
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -44,6 +54,8 @@ static void snd_emu10k1_write_op(void *icode,
 
 #define C_00000000	0x40
 #define C_00000001	0x41
+#define C_10000000	0x4b
+#define C_20000000	0x4c
 #define C_40000000	0x4d
 #define C_10000000	0x4b
 #define C_00080000	0x4a
@@ -109,6 +121,10 @@ typedef struct AC97_REG
 #define FXRT			0x0b
 #define AC97SLOT		0x5f
 
+/*
+ * AC'97 registers to give a reasonable loop-back behaviour
+ * 
+ * */
 AC97_REG_T REGS [] = {
 	{0x02, 0x1616},    // unmute master -- so can hear in analogue output
 	{0x04, 0x8808},
@@ -120,29 +136,53 @@ AC97_REG_T REGS [] = {
 	{0x12, 0x8000},
 	{0x14, 0x8000},
 	{0x16, 0x8000},
-	{0x18, 0x0404},
+                      // 0x18 is dealt with specially
 	{0x1A, 0x0505},
 	{0x1C, 0x0303},
 	{0x20, 0x0000},   // no 3D - no need to set 0x22
-	{0x6C, 0x0000}    // default value
+	{0x22, 0x0000},
+	{0x6C, 0x0000}
 
 };
 
 
-enum {
-	USE_FRONT_CH = 0,
-	USE_REAR_CH = 1,
-	USE_SURROUND_CH = 2,
-	USE_CENTER_CH = 3,
-};
 
-const int Channel_Selection = USE_CENTER_CH;
+//const int SEL = 4;   // Takes values 0-7.
+
+const int REDUCE_VOL_METHOD = 1;   // Takes values 0-2. Affects SEL=5,6 which
+                                   // have a different volume level from the
+                                   // other channels for some reason.
+                                   //   0 = do nothing with these channels. (Will overload!!)
+                                   //   1 = reduce volume digitally (within EMU10k1). This is currently commented out
+                                   //   2 = reduce volume in analogue (within AC'97)
 
 
-
-
-int main()
+int main(int argc, void * argv[])
 {
+	
+	printf("%d \r\n", argc);
+	
+	
+	int SEL = 0;
+	uint8_t PCM_Vol = 4;
+	
+	
+
+	/* First command-line argument is which slot to use (an
+	 * index value in range 0-7   */
+	if (argc >= 2)
+	{
+		SEL = atoi(argv[1]);
+	}
+
+	/* Second command-line argument is the volume to apply to both
+	 * PCM OUT channels (i.e. the DAC)    */
+	if (argc >= 3)
+	{
+		PCM_Vol = atoi(argv[2]);
+		printf("%d %d\r\n", SEL, PCM_Vol);
+	}
+	
     int y = ioperm(0xE000, 32*8, 1);
     printf("%d\r\n", y);
 
@@ -162,54 +202,71 @@ int main()
 	}
 	
 	uint8_t Reg74_Val = 0x00;
-	if (Channel_Selection == USE_FRONT_CH)
+	switch(SEL)
 	{
-		Reg74_Val = 0x00;
+		case 0:
+		case 1:
+		default:
+			Reg74_Val = 0;
+			break;
+		case 2:
+		case 3:
+			Reg74_Val = 2;
+			break;
+		case 4:
+		case 5:
+			Reg74_Val = 1;
+			break;
+		case 6:
+		case 7:
+			Reg74_Val = 3;
+			break;
+			
 	}
-	else if (Channel_Selection == USE_REAR_CH)
-	{
-		Reg74_Val = 0x02;
-			// MC1,MC0 = 1,0.
-			// Hold on! According to STAC9721 documentation this enables
-			// slots 6&9 which are CTR&LFE. However, all the EMU10K1 defines
-			// seem to indicates it thinks it's sending on RearL & RearR.
-			// Something isn't adding up here.
-	}
-	else if (Channel_Selection == USE_SURROUND_CH)
-	{
-		Reg74_Val = 0x03;
-	}
-	else if (Channel_Selection == USE_CENTER_CH)
-	{
-		Reg74_Val = 0x01;
-	}
-	
-	
+
+
 	outl(0x74, 0xE000+AC97ADDRESS);  //AC97_SIGMATEL_MULTICHN
 	usleep(2);
 	outw((uint16_t)Reg74_Val, 0xE000+AC97DATA);
 
 
+	//uint8_t PCM_Vol = 4;
+	//if ((SEL==5 || SEL==6) && (REDUCE_VOL_METHOD==1))
+	//{
+	//	// Reduce the volume of these two channels.
+	//	PCM_Vol = 7;   // larger = quieter
+	//}
 
+	outl(0x18, 0xE000+AC97ADDRESS);
+	usleep(2);
+	outw((uint16_t)PCM_Vol * 0x0001 + 0x8A00, 0xE000+AC97DATA);
 
 	uint32_t ac97_slot_sel = 0x0;
 
-	if (Channel_Selection == USE_FRONT_CH)
+	switch(SEL)
 	{
-		ac97_slot_sel = 0x00;
+		case 0:
+		case 1:
+		default:
+			ac97_slot_sel = 0x00;
+			break;
+		case 2:
+			ac97_slot_sel = 0x03;   // neither 1 nor 2 works
+			break;
+		case 3:
+			ac97_slot_sel = 0x02;
+			break;
+		case 4:
+		case 5:
+			ac97_slot_sel = 0x30;    // neither 0x10 not 0x20 works
+			break;
+		case 6:
+		case 7:
+			ac97_slot_sel = 0x0C;
+			break;
+			
 	}
-	else if (Channel_Selection == USE_REAR_CH)
-	{
-		ac97_slot_sel = 0x03;    // =AC97SLOT_REAR_RIGHT|AC97SLOT_REAR_LEFT
-	}
-	else if (Channel_Selection == USE_SURROUND_CH)
-	{
-		ac97_slot_sel = 0x0C;       // doesn't seem to be defined??
-	}
-	else if (Channel_Selection == USE_CENTER_CH)
-	{
-		ac97_slot_sel = 0x30;       // =AC97SLOT_CNTR|AC97SLOT_LFE
-	}
+
 
 
 	outl((AC97SLOT<<16)+0, 0xE000+PTR);
@@ -220,45 +277,63 @@ int main()
 
 	int ptr = 0x0;
 
-	//Clear the extout, which seems to be written directly by the device
-	//OP(NULL, &ptr, iACC3, FXBUS(0), C_00000000, EXTOUT(0), C_00000000);
-	//OP(NULL, &ptr, iACC3, FXBUS(1), C_00000000, EXTOUT(1), C_00000000);
 
-	if (Channel_Selection == USE_FRONT_CH)
+		
+		
+	uint8_t ext_out = 0;
+	
+	switch(SEL)
 	{
-		//Forward playback to the front channel pair
-		OP(NULL, &ptr, iMACINT0, EXTOUT(EXTOUT_AC97_L), C_00000000, FXBUS(0), C_00000001);
-		OP(NULL, &ptr, iMACINT0, EXTOUT(EXTOUT_AC97_R), C_00000000, FXBUS(1), C_00000001);
+		case 0:
+		default:
+			ext_out = EXTOUT_AC97_L;
+			break;
+		case 1:
+			ext_out = EXTOUT_AC97_R;
+			break;
+		case 2:
+			ext_out = EXTOUT_AC97_REAR_L;
+			break;
+		case 3:
+			ext_out = EXTOUT_AC97_REAR_R;
+			break;
+		case 4:
+			ext_out = EXTOUT_ACENTER;
+			break;
+		case 5:
+			ext_out = EXTOUT_ALFE;
+			break;
+		case 6:
+			ext_out = 15;   // a value that's not defined in the uapi_sound_emu10k1.h header!
+			break;
+		case 7:
+			ext_out = 16;   // a value that's not defined in the uapi_sound_emu10k1.h header!
+			break;
+	}
+	
+	//Forward playback to the correct channel 
+	if ((SEL==5 || SEL==6) && (REDUCE_VOL_METHOD == 2))
+	{
+		// These channels for some reason needs to be reduced by -12dB, otherwise
+		// it will overload
+		OP(NULL, &ptr, iMAC0, EXTOUT(ext_out), C_00000000, FXBUS(0), C_20000000);
 	}
 	else
 	{
-		
-		
-			
-		if (Channel_Selection == USE_REAR_CH)
-		{
-			//Forward playback to the rear channel pair
-			OP(NULL, &ptr, iMACINT0, EXTOUT(EXTOUT_AC97_REAR_L), C_00000000, FXBUS(0), C_00000001);
-			OP(NULL, &ptr, iMACINT0, EXTOUT(EXTOUT_AC97_REAR_R), C_00000000, FXBUS(1), C_00000001);
-		}
-		else if (Channel_Selection == USE_SURROUND_CH)
-		{
-			//Forward playback to the 15/16 channel pair. These aren't defined in the headers, not exactly
-			// sure what they are.
-			OP(NULL, &ptr, iMACINT0, EXTOUT(15), C_00000000, FXBUS(0), C_00000001);
-			//OP(NULL, &ptr, iMACINT0, EXTOUT(16), C_00000000, FXBUS(1), C_00000001);
-		}
-		else if (Channel_Selection == USE_CENTER_CH)
-		{
-			//Forward playback to the Center/LFE channel pair.
-			//OP(NULL, &ptr, iMAC0, EXTOUT(EXTOUT_ACENTER), C_00000000, FXBUS(0), C_00000001);
-			OP(NULL, &ptr, iMAC0, EXTOUT(EXTOUT_ALFE), C_00000000, FXBUS(1), C_10000000);
-		}
-
-		//Make sure nothing is going to the front channel pair
-		OP(NULL, &ptr, iACC3, EXTOUT(EXTOUT_AC97_L), C_00000000, C_00000000, C_00000000);
-		OP(NULL, &ptr, iACC3, EXTOUT(EXTOUT_AC97_R), C_00000000, C_00000000, C_00000000);
+		OP(NULL, &ptr, iMACINT0, EXTOUT(ext_out), C_00000000, FXBUS(0), C_00000001);
 	}
+
+
+	//Make sure nothing is going to the front channel pair
+	if (ext_out != 0)
+	{
+		OP(NULL, &ptr, iACC3, EXTOUT(0), C_00000000, C_00000000, C_00000000);
+	}
+	if (ext_out != 1)
+	{
+		OP(NULL, &ptr, iACC3, EXTOUT(1), C_00000000, C_00000000, C_00000000);
+	}
+
 
 	//Forward AC97 capture to the ADC device
 	OP(NULL, &ptr, iMACINT0, EXTOUT(EXTOUT_ADC_CAP_L), C_00000000, EXTIN(EXTIN_AC97_L), C_00000001);
@@ -270,31 +345,6 @@ int main()
 		OP(NULL, &ptr, iACC3, C_00000000, C_00000000, C_00000000, C_00000000);
 	}
 
-
-	// Turn all forwarding amounts to 0x00
-
-	int w;
-	
-	for (w = 0; w < 64; w ++)
-	{
-
-		outl((PTRX<<16)+w, 0xE000+PTR);
-		uint32_t z1 = inl(0xE000+DATA);
-		outl(z1 & 0xFFFF0000, 0xE000+DATA);   // A&B to 0x00
-
-		outl((PSST<<16)+w, 0xE000+PTR);
-		z1 = inl(0xE000+DATA);
-		outl((z1 & 0x00FFFFFF) | 0xFF000000, 0xE000+DATA);   // C to 0x00
-
-		outl((DSL<<16)+w, 0xE000+PTR);
-		z1 = inl(0xE000+DATA);
-		outl((z1 & 0x00FFFFFF) | 0xFF000000, 0xE000+DATA);   // D to 0x00
-
-
-		//outl((FXRT<<16)+w, 0xE000+PTR);
-		//outl(0xABCD0000, 0xE000+DATA);
-
-	}
 
 
 
