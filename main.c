@@ -60,121 +60,10 @@ static void snd_emu10k1_write_op(void *icode,
 #define FXBUS(x)    (x)
 #define EXTIN(x)	(0x10 + (x))
 #define EXTOUT(x)	(0x20 + (x))
+#define FXBUS2(x)	(0x30 + (x))
 
 int main()
 {
-#if 0
-	int f = open("/dev/snd/pcmC1D2p", O_NONBLOCK);
-	
-	void * buf2  = malloc(sizeof(struct snd_emu10k1_fx8010_code)+10000);
-	
-	if (buf2 == NULL)
-		return -1;
-	struct snd_emu10k1_fx8010_code * CODE = (struct snd_emu10k1_fx8010_code *) buf2;
-	
-	__u32 * BUFF = (__u32 *)(buf2 + sizeof(struct snd_emu10k1_fx8010_code));
-	
-	memset(CODE, 0, sizeof(struct snd_emu10k1_fx8010_code));
-	
-	CODE->code = BUFF;
-	CODE->code_valid[0] = ~((unsigned long)0);
-	
-	printf("%d\n", f);
-	
-	
-	//int yy = ioctl(f, (2UL << 30) | (2060UL << 16) | (0x48 << 8) | (0x10UL << 0), buf2);
-	//int yy = ioctl(f, (2UL << 30) | (sizeof(int) << 16) | (0x48 << 8) | (0x40UL << 0), buf2);
-	//int yy = ioctl(f, (2UL << 30) | (sizeof(int) << 16) | (0x48 << 8) | (0x84UL << 0), buf2);
-	int yy = ioctl(f, SNDRV_EMU10K1_IOCTL_CODE_PEEK/*(2UL << 30) | (sizeof(struct snd_emu10k1_fx8010_code) << 16) | (0x48 << 8) | (0x12UL << 0)*/, buf2);
-	printf("%d\n", yy);
-	printf("%d\n", errno);
-	
-	
-	printf("%d,%d,%d,%d,%d\n", EBADF,EFAULT,EINVAL,ENOTTY,ENOTTY);
-	
-	
-	if (yy >= 0)
-	{
-		//printf("%08X\n", ((uint32_t*)buf2)[0]);
-		//printf("%08X\n", ((uint32_t*)buf2)[1]);
-		//printf("%08X\n", ((uint32_t*)buf2)[2]);
-		//printf("%08X\n", ((uint32_t*)buf2)[3]);
-		//printf("%08X\n", ((uint32_t*)buf2)[4]);
-		//printf("%08X\n", ((uint32_t*)buf2)[5]);
-		//printf("%08X\n", ((uint32_t*)buf2)[6]);
-		//printf("%08X\n", ((uint32_t*)buf2)[7]);
-		//printf("%08X\n", ((uint32_t*)buf2)[514]);
-		printf("%08X\n", (BUFF[0]));
-		printf("%08X\n", (BUFF[1]));
-		printf("%08X\n", (BUFF[2]));
-		printf("%08X\n", (BUFF[3]));
-	}
-	
-	
-	
-	free(buf2);
-	
-	close(f);
-	return 0;
-	
-#endif // 0
-
-
-#if 0
-    void * buf  = malloc(0x800*4);
-    if (buf == NULL)
-    {
-        return -1;
-    }
-
-    
-    printf("%08X\n", (uint32_t) buf);
-
-
-    int y = ioperm(0xE000, 32*8, 1);
-    printf("%d\r\n", y);
-    
-    int i;
-
-    for (i = 0x100; i < 0x800; i += 1)
-    {
-        outl(  (((uint32_t) i) << 16),   0xE000+0x00);
-        uint32_t x = inl(0xE000+0x4);
-        
-        ((uint32_t*) buf)[4*i] = x;
-        
-    }
-
-    
-    usleep(1000);
-    
-    y = ioperm(0xE000, 32*8, 0);
-    printf("%d\r\n", y);
-
-#if 1
-    for (i = 0x100; i < 0x800; i += 1)
-    {
-        if (i % 4 == 0)
-        {
-            printf("%08X  ", (uint32_t) i);
-        }
-
-        printf("%08X ", ((uint32_t*) buf)[4*i]);
-        if (i % 4 == 3)
-        {
-            printf("\n");
-        }
-    }
-    printf("\n");
-#endif
-
-    printf("%08X\n", (uint32_t) buf);
-    free(buf);
-
-#endif // 0
-
-#if 1
-
     int y = ioperm(0xE000, 32*8, 1);
     printf("%d\r\n", y);
 
@@ -184,49 +73,39 @@ int main()
     
     printf("Contents of FXWC: %X\r\n", y);
 
-// Overwrite most of the microcode with just copying in noise
-int ptr = 0x0;
+    // Overwrite most of the microcode with just copying from inputs to outputs
+    int ptr = 0x0;
 
-//while (ptr < 12)
-//{
-//	OP(NULL, &ptr, iACC3, C_00000000, C_00000000, C_00000000, C_00000000);
-//}
-
-
-
-ptr = 0x30;
-int z;
-// These are defined in emufx.c . May have changed?
-#define INPUT_CHANNEL_COUNT 12
-#define PLAYBACK_CHANNEL_COUNT 8
-#define CAPTURE_CHANNEL_COUNT 4
-for (z = 0; z < INPUT_CHANNEL_COUNT + PLAYBACK_CHANNEL_COUNT + CAPTURE_CHANNEL_COUNT ; z ++)
-{
-	//OP(NULL, &ptr, iMACINT0, GPR(z), C_00000000, GPR_NOISE0, C_00000001);
-}
-
-for (z = 16; z < 32 ; z ++)
-{
-//	OP(NULL, &ptr, iMAC0, EXTOUT(z), GPR(z-16), GPR_NOISE0, C_20000000);
-	OP(NULL, &ptr, iMACINT0, EXTOUT(z), C_00000000, FXBUS(z-16), C_00000001);
-}
-
-//OP(NULL, &ptr, iMAC0, EXTOUT(16), EXTOUT(0), GPR_NOISE0, C_20000000);
-//OP(NULL, &ptr, iMAC0, EXTOUT(17), EXTOUT(1), GPR_NOISE0, C_20000000);
-//OP(NULL, &ptr, iMAC0, EXTOUT(30), EXTOUT(0), C_00000000, C_20000000);
-//OP(NULL, &ptr, iMAC0, EXTOUT(31), EXTOUT(1), C_00000000, C_20000000);
+    // Setting this to 0x30 skips the portion of microcode dedicated to stopping/
+    //  starting TRAM. Is that important? It might relate to the second playback
+    //  device, but doesn't seem to affect anything else. This line is optional.
+    ptr = 0x30;
+    
+    int z;
+    // These are defined in emufx.c . May have changed?
+    #define INPUT_CHANNEL_COUNT 12
+    #define PLAYBACK_CHANNEL_COUNT 8
+    #define CAPTURE_CHANNEL_COUNT 4
+    //for (z = 0; z < INPUT_CHANNEL_COUNT + PLAYBACK_CHANNEL_COUNT + CAPTURE_CHANNEL_COUNT ; z ++)
+    //{
+    //    OP(NULL, &ptr, iMACINT0, GPR(z), C_00000000, GPR_NOISE0, C_00000001);
+    //}
 
 
 
+    // Copy from all inputs to all outputs. FXBUS seems to be regarded as inputs,
+    //  and FXBUS2 as outputs.
+    for (z = 0; z < 16 ; z ++)
+    {
+        OP(NULL, &ptr, iMACINT0, FXBUS2(z), C_00000000, FXBUS(z), C_00000001);
+    }
 
-while (ptr < 0x200)
-{
-	OP(NULL, &ptr, iACC3, C_00000000, C_00000000, C_00000000, C_00000000);
-}
 
-   // outl ((uint32_t) (0x43)  << 16,   0xE000+0x00);
-   // outl  ( 0x55550000UL,  0xE000+0x4 );
-
+    // Fill the remainder of microcode with no-operations
+    while (ptr < 0x200)
+    {
+        OP(NULL, &ptr, iACC3, C_00000000, C_00000000, C_00000000, C_00000000);
+    }
 
 
     usleep(1000);
@@ -234,10 +113,7 @@ while (ptr < 0x200)
     y = ioperm(0xE000, 32*8, 0);
     printf("%d\r\n", y);
 
-#endif
-
 
 
     return 0;
 }
-
