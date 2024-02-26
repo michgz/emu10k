@@ -25,6 +25,8 @@
 //#include "../linux_build/linux-6.2/include/uapi/sound/emu10k1.h"
 
 #include <stdint.h>
+#include <stdbool.h>
+
 
 typedef uint32_t u32;
 
@@ -126,8 +128,8 @@ typedef struct AC97_REG
  * 
  * */
 AC97_REG_T REGS [] = {
-	{0x02, 0x1616},    // unmute master -- so can hear in analogue output
-	{0x04, 0x8808},
+	{0x02, 0x8808},    // unmute master -- so can hear in analogue output
+                      // 0x04 is dealt with specially
 	{0x06, 0x8000},
 	{0x0A, 0x8000},
 	{0x0C, 0x8000},
@@ -139,9 +141,9 @@ AC97_REG_T REGS [] = {
                       // 0x18 is dealt with specially
 	{0x1A, 0x0505},
 	{0x1C, 0x0303},
+	{0x38, 0x1616},
 	{0x20, 0x0000},   // no 3D - no need to set 0x22
-	{0x22, 0x0000},
-	{0x6C, 0x0000}
+	{0x6C, 0x0000}    // default value
 
 };
 
@@ -149,12 +151,17 @@ AC97_REG_T REGS [] = {
 
 //const int SEL = 4;   // Takes values 0-7.
 
-const int REDUCE_VOL_METHOD = 1;   // Takes values 0-2. Affects SEL=5,6 which
+const int REDUCE_VOL_METHOD = 0;   // Takes values 0-2. Affects SEL=5,6 which
                                    // have a different volume level from the
                                    // other channels for some reason.
                                    //   0 = do nothing with these channels. (Will overload!!)
-                                   //   1 = reduce volume digitally (within EMU10k1). This is currently commented out
+                                   //   1 = reduce volume digitally (within EMU10k1)
                                    //   2 = reduce volume in analogue (within AC'97)
+
+
+
+static bool USE_SURROUND_DAC = true;   // Only valid for STAC9708. Must be false for STAC9721.
+                                      // Selects that the slots are sent to PCM 2 (the surround PCM)
 
 
 int main(int argc, void * argv[])
@@ -207,19 +214,31 @@ int main(int argc, void * argv[])
 		case 0:
 		case 1:
 		default:
+			// Slots 3 & 4: only supported by main PCM
 			Reg74_Val = 0;
+			USE_SURROUND_DAC = false;
 			break;
 		case 2:
 		case 3:
-			Reg74_Val = 2;
+			// Slots 7 & 8
+			if (USE_SURROUND_DAC)
+				Reg74_Val = 1;
+			else
+				Reg74_Val = 2;  // or 3!
 			break;
 		case 4:
 		case 5:
-			Reg74_Val = 1;
+			// Slots 6 & 9
+			if (USE_SURROUND_DAC)
+				Reg74_Val = 0;   // or 2!
+			else
+				Reg74_Val = 1;
 			break;
 		case 6:
 		case 7:
+			// Slots 10 & 11: only supported by secondary PCM
 			Reg74_Val = 3;
+			USE_SURROUND_DAC = true;
 			break;
 			
 	}
@@ -237,9 +256,26 @@ int main(int argc, void * argv[])
 	//	PCM_Vol = 7;   // larger = quieter
 	//}
 
-	outl(0x18, 0xE000+AC97ADDRESS);
-	usleep(2);
-	outw((uint16_t)PCM_Vol * 0x0001 + 0x8A00, 0xE000+AC97DATA);
+	if (USE_SURROUND_DAC)
+	{
+		outl(0x04, 0xE000+AC97ADDRESS);
+		usleep(2);
+		outw((uint16_t)PCM_Vol * 0x0101, 0xE000+AC97DATA);
+		outl(0x18, 0xE000+AC97ADDRESS);
+		usleep(2);
+		outw(0x8808, 0xE000+AC97DATA);
+	}
+	else
+	{
+		outl(0x18, 0xE000+AC97ADDRESS);
+		usleep(2);
+		outw((uint16_t)PCM_Vol * 0x0101, 0xE000+AC97DATA);
+		outl(0x04, 0xE000+AC97ADDRESS);
+		usleep(2);
+		outw(0x8808, 0xE000+AC97DATA);
+	}
+
+
 
 	uint32_t ac97_slot_sel = 0x0;
 
@@ -251,18 +287,22 @@ int main(int argc, void * argv[])
 			ac97_slot_sel = 0x00;
 			break;
 		case 2:
-			ac97_slot_sel = 0x03;   // neither 1 nor 2 works
+			ac97_slot_sel = 0x01;
 			break;
 		case 3:
 			ac97_slot_sel = 0x02;
 			break;
 		case 4:
+			ac97_slot_sel = 0x10;    // or 0x30 also works...
+			break;
 		case 5:
-			ac97_slot_sel = 0x30;    // neither 0x10 not 0x20 works
+			ac97_slot_sel = 0x20;
 			break;
 		case 6:
+			ac97_slot_sel = 0x04;
+			break;
 		case 7:
-			ac97_slot_sel = 0x0C;
+			ac97_slot_sel = 0x08;
 			break;
 			
 	}
@@ -324,15 +364,24 @@ int main(int argc, void * argv[])
 	}
 
 
-	//Make sure nothing is going to the front channel pair
-	if (ext_out != 0)
-	{
-		OP(NULL, &ptr, iACC3, EXTOUT(0), C_00000000, C_00000000, C_00000000);
-	}
-	if (ext_out != 1)
-	{
-		OP(NULL, &ptr, iACC3, EXTOUT(1), C_00000000, C_00000000, C_00000000);
-	}
+	// Now make sure the unused EXTOUTs are silent -- it stops forwarding from the FXBUS
+	if (ext_out != EXTOUT_AC97_L)
+		OP(NULL, &ptr, iACC3, EXTOUT(EXTOUT_AC97_L), C_00000000, C_00000000, C_00000000);
+	if (ext_out != EXTOUT_AC97_R)
+		OP(NULL, &ptr, iACC3, EXTOUT(EXTOUT_AC97_R), C_00000000, C_00000000, C_00000000);
+	if (ext_out != EXTOUT_AC97_REAR_L)
+		OP(NULL, &ptr, iACC3, EXTOUT(EXTOUT_AC97_REAR_L), C_00000000, C_00000000, C_00000000);
+	if (ext_out != EXTOUT_AC97_REAR_R)
+		OP(NULL, &ptr, iACC3, EXTOUT(EXTOUT_AC97_REAR_R), C_00000000, C_00000000, C_00000000);
+	if (ext_out != EXTOUT_ACENTER)
+		OP(NULL, &ptr, iACC3, EXTOUT(EXTOUT_ACENTER), C_00000000, C_00000000, C_00000000);
+	if (ext_out != EXTOUT_ALFE)
+		OP(NULL, &ptr, iACC3, EXTOUT(EXTOUT_ALFE), C_00000000, C_00000000, C_00000000);
+	if (ext_out != 15)
+		OP(NULL, &ptr, iACC3, EXTOUT(15), C_00000000, C_00000000, C_00000000);
+	if (ext_out != 16)
+		OP(NULL, &ptr, iACC3, EXTOUT(16), C_00000000, C_00000000, C_00000000);
+
 
 
 	//Forward AC97 capture to the ADC device
