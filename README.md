@@ -45,7 +45,7 @@ which settings on the AC'97 chip resulted in sound being produced.
 
 It's clear that the EXTOUT naming scheme is not following the AC'97 naming in any way. Also, the following table of slot allocations is taken from the STAC9708 specification:
 
-
+![multi_channel_reg](https://github.com/michgz/emu10k/multi_channel_reg.png)
 
 Compare this against the connection of AC'97 outputs to external connectors on the SB0060 soundcard:
 
