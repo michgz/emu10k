@@ -31,16 +31,16 @@ and a SB0060 card which has a STAC9708 chip. The experiment was done using micro
 which settings on the AC'97 chip resulted in sound being produced.
 
 
-| AC'97 slot  (name)    |   Channel  |   EXTOUT number  (name if known)   |   Required AC97SLOT mask value       |
-|-----------------------|------------|------------------------------------|--------------------------------------|
-|   3    ( PCM LEFT )   |   Left     |    0  ( EXTOUT_AC97_L )            |       none (00000000h)               |
-|   4    ( PCM RIGHT )  |   Right    |    1  ( EXTOUT_AC97_R )            |       none (00000000h)               |
-|   6    ( PCM CTR)     |   Left     |    13 ( EXTOUT_AC97_REAR_L )       |           00000001h                  |
-|   9    ( PCM LFE )    |   Right    |    14 ( EXTOUT_AC97_REAR_R )       |           00000002h                  |
-|   7    ( PCM LSURR)   |   Left     |    17 ( EXTOUT_ACENTER )           |           00000010h                  |
-|   8    ( PCM RSURR )  |   Right    |    18 ( EXTOUT_ALFE )              |           00000020h                  |
-|   10   ( PCM LALT )   |   Left     |    15                              |           00000004h                  |
-|   11   ( PCM RALT )   |   Right    |    16                              |           00000008h                  |
+| AC'97 slot  (name)    |   Channel  |   EXTOUT number  (name if known)   |   Required AC97SLOT mask value   (name if known)     |
+|-----------------------|------------|------------------------------------|------------------------------------------------------|
+|   3    ( PCM LEFT )   |   Left     |    0  ( EXTOUT_AC97_L )            |       none                                           |
+|   4    ( PCM RIGHT )  |   Right    |    1  ( EXTOUT_AC97_R )            |       none                                           |
+|   6    ( PCM CTR)     |   Left     |    13 ( EXTOUT_AC97_REAR_L )       |   00000001h  (AC97SLOT_REAR_RIGHT \[sic\])             |
+|   9    ( PCM LFE )    |   Right    |    14 ( EXTOUT_AC97_REAR_R )       |   00000002h  (AC97SLOT_REAR_LEFT \[sic\])              |
+|   7    ( PCM LSURR)   |   Left     |    17 ( EXTOUT_ACENTER )           |   00000010h  (AC97SLOT_CNTR)                         |
+|   8    ( PCM RSURR )  |   Right    |    18 ( EXTOUT_ALFE )              |   00000020h  (AC97SLOT_LFE)                          |
+|   10   ( PCM LALT )   |   Left     |    15                              |           00000004h                                  |
+|   11   ( PCM RALT )   |   Right    |    16                              |           00000008h                                  |
 
 
 It's clear that the EXTOUT naming scheme is not following the AC'97 naming in any way. Also, the following table of slot allocations is taken from the STAC9708 specification:
