@@ -37,15 +37,15 @@ There's some wierd things about some of the PCM devices. Solutions for the follo
 
 #### Scaling on playback is different from record
 
-Link
+[https://github.com/michgz/emu10k/blob/master/TROUBLESHOOTING.md#scaling-on-playback-is-different-from-record]
 
 #### With Multichannel Playback there are two channels with no sound
 
-Link
+[https://github.com/michgz/emu10k/blob/master/TROUBLESHOOTING.md#two-channels-of-multichannel-playback-produce-no-sound]
 
 #### With Multichannel Capture the channels are in the wrong order
 
-Link
+[https://github.com/michgz/emu10k/blob/master/TROUBLESHOOTING.md#multichannel-capture-has-inconsistent-ordering]
 
 ---
 
