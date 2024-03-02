@@ -14,13 +14,13 @@ arecord -D hw:CARD=Live,DEV=2 Fromfile.wav
 aplay -D hw:CARD=Live,DEV=3 -M Tofile.wav
 ```
 
-It's also possible to use "plughw:" instead of "hw:", which eliminates sample rate restrictions but requires more processing from the CPU.
+(It's also possible to use "plughw:" instead of "hw:", which eliminates sample rate restrictions but requires more processing from the CPU).
 
 | Direction | Number    |  Name                 | Channel counts supported |   Sample rates supported (Hz)    | Mechanism used |   Notes          |
 |-----------|-----------|-----------------------|--------------------------|----------------------------------|----------------|------------------|
 |  Playback |  Device 0 | Standard PCM Playback |   1 or 2                 |  Any, up to 48000                | Voices         | See troubleshooting notes below  |
 |  Playback |  Device 2 | PT Playback           |   1 or 2                 |   ?                              | External TRAM  |                   |
-|  Playback |  Device 3 | Multichannel Playback |   16                     |  48000                           | Voices         | Memory-mapped; with aplay must use '-M' option |
+|  Playback |  Device 3 | Multichannel Playback |   16                     |  48000                           | Voices         | Memory-mapped; with `aplay` must use '-M' option |
 |  Record   |  Device 0 | ADC Capture           |   1 or 2                 | 48000, 44100, 8000 (and a few others) | ADC Capture    |                            |
 |  Record   |  Device 1 | Mic Capture           |   1                      |   8000                           | Mic Capture    |                                 |
 |  Record   |  Device 2 | Multichannel Capture  |  1, 2, 4, 8, 16 or 32    |   48000                          | FX Capture     | See troubleshooting notes below |
@@ -30,6 +30,9 @@ AC'97 ADC but it doesn't have to be - it can capture from any function on the EM
 perfectly well handled by "ADC Capture". Most likely "Mic Capture" is intended for cards with a separate (low-fidelity) analogue in addition to the AC'97, and these cards don't have that extra circuitry.
 
 When "ADC Capture" is used with a sample rate of other than 48000 Hz, it is presumably being down-sampled in hardware using Creative's patented algorithm for doing so.
+
+Documentation for the EMU10K1 states that "FX Capture" works with any number of channels up to 32, but on my setup (possibly related to the version of the driver I have) it seems to only work with powers-of-two: 1, 2, 4, 8, 16 or 32. See also the
+troubleshooting for an issue when 16 or 32 channels is selected.
 
 ### Troubleshooting
 
