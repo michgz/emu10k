@@ -1,4 +1,4 @@
-## Scaling on playback is different from record
+#### Scaling on playback is different from record
 
 Samples internally in the EMU10K1 are 32 bit fixed-point, while hardware Playback/Record devices all use 16 bits.
 
