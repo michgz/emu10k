@@ -78,4 +78,4 @@ FXBUS2(14),FXBUS2(15),FXBUS2(0),FXBUS2(1),FXBUS2(2),FXBUS2(3),FXBUS2(4),FXBUS2(5
 
 but sometimes (seemingly randomly?) they are rotated round in a completely different way. There seems to be no consistent way to identify which channel is from which output.
 
-I haven't found a solution to this, but have noticed it only happens when 16 or 32 channels are being captured. With 1, 2, 4 or 8 channel captured the Multichannel Capture works fine.
+I haven't found a solution to this, but have noticed it only happens when 16 or 32 channels are being captured. With 1, 2, 4 or 8 channel captured the Multichannel Capture works exactly as expected (i.e. in order of bus numbering).
