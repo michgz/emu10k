@@ -1,7 +1,51 @@
 # emu10k
-Experimentations with the EMU10K1 soundcards which were produced by Creative Labs in the late '90s/early 2000's.
+Experimentations with the EMU10K1 soundcards which were marketed under the "SoundBlaster Live!" brand by Creative Labs in the late '90s/early 2000's.
+
+I have two of these cards: a CT4760 and a SB0060, with the only major difference between them being the SB0060 supports analogue 5.1 output. Hopefully the findings here are also quite applicable to other cards with EMU10K1/EMU10K1X/EMU10K2 chips such as the "Audigy" soundcards.
 
 There's quite extensive support for these cards in current Linux/ALSA, which I'm exploring. My main goal is to use the effects processing on the cards in a "Send-Return" manner, i.e. to use the cards as a multi-channel hardware accelerator for DSP effects processing.
+
+## PCM Support
+
+The ALSA driver provides six PCM devices, as listed in the table below. As an example, to use Multichannel Playback/Capture with `aplay/arecord` it is possible to do:
+
+```
+arecord -D hw:CARD=Live,DEV=2 Fromfile.wav
+aplay -D hw:CARD=Live,DEV=3 -M Tofile.wav
+```
+
+It's also possible to use "plughw:" instead of "hw:", which eliminates sample rate restrictions but requires more processing from the CPU.
+
+| Direction | Number    |  Name                 | Channel counts supported |   Sample rates supported (Hz)    | Mechanism used |   Notes          |
+|-----------|-----------|-----------------------|--------------------------|----------------------------------|----------------|------------------|
+|  Playback |  Device 0 | Standard PCM Playback |   1 or 2                 |  Any, up to 48000                | Voices         | See troubleshooting notes below  |
+|  Playback |  Device 2 | PT Playback           |   1 or 2                 |   ?                              | External TRAM  |                   |
+|  Playback |  Device 3 | Multichannel Playback |   16                     |  48000                           | Voices         | Memory-mapped; with aplay must use '-M' option |
+|  Record   |  Device 0 | ADC Capture           |   1 or 2                 | 48000, 44100, 8000 (and a few others) | ADC Capture    |                            |
+|  Record   |  Device 1 | Mic Capture           |   1                      |   8000                           | Mic Capture    |                                 |
+|  Record   |  Device 2 | Multichannel Capture  |  1, 2, 4, 8, 16 or 32    |   48000                          | FX Capture     | See troubleshooting notes below |
+
+The naming of some of these is a little misleading. "PT Playback" seems to be intended for use with IEC958 digital outputs -- I assume "PT" stands for "Pass-Through" in that case. "ADC Capture" is often used for capture from the
+AC'97 ADC but it doesn't have to be - it can capture from any function on the EMU10K1 and there's no ADC (or indeed Mic input) on the EMU10K1. And "Mic Capture" appears to have no use on the SoundBlaster cards - the AC'97 on these cards have only a single stereo capture channel and that's 
+perfectly well handled by "ADC Capture". Most likely "Mic Capture" is intended for cards with a separate (low-fidelity) analogue in addition to the AC'97, and these cards don't have that extra circuitry.
+
+When "ADC Capture" is used with a sample rate of other than 48000 Hz, it is presumably being down-sampled in hardware using Creative's patented algorithm for doing so.
+
+### Troubleshooting
+
+There's some wierd things about some of the PCM devices. Solutions for the following things are covered in the links:
+
+#### Scaling on playback is different from record
+
+Link
+
+#### With Multichannel Playback there are two channels with no sound
+
+Link
+
+#### With Multichannel Capture the channels are in the wrong order
+
+Link
 
 ---
 
@@ -86,9 +130,9 @@ FXBUS(12) -> EXTOUT(12)
 FXBUS(13) -> EXTOUT(13)
 FXBUS(14) -> EXTOUT(14)
 FXBUS(15) -> EXTOUT(15)
-EXTIN(0)  -> FXBUS2(0)   -- a.k.a. EXTOUT(16)
-EXTIN(1)  -> FXBUS2(1)   -- a.k.a. EXTOUT(17)
-EXTIN(2)  -> FXBUS2(2)   -- a.k.a. EXTOUT(18)
+EXTIN(0)  -> FXBUS2(0)   - a.k.a. EXTOUT(16)
+EXTIN(1)  -> FXBUS2(1)   - a.k.a. EXTOUT(17)
+EXTIN(2)  -> FXBUS2(2)   - a.k.a. EXTOUT(18)
 EXTIN(3)  -> FXBUS2(3)
 EXTIN(4)  -> FXBUS2(4)
 EXTIN(5)  -> FXBUS2(5)
@@ -107,9 +151,9 @@ EXTIN(15) -> FXBUS2(15)
 
 This makes sense - in a simple application where loading of microcode is not required, there needs to be some way to
 get playback channels to physical outputs, and similarly physical inputs to record channels. A problem
-arises though with certain AC'97 setups, because EXTIN(0) and EXTIN(1) are inputs from the AC'97, while EXTOUT(16) and
+arises though with certain AC'97 setups, because EXTIN(0) and EXTIN(1) are inputs from the AC'97 on slots 3 & 4, while EXTOUT(16) and
 EXTOUT(17) are outputs to slots 11 and 7 of the AC'97. It's possible to set things up so that this automatic routing produces a nasty
 feedback loop though the analogue of the AC'97.
 
 Luckily resolving this problem is simple with microcode - simply write EXTOUT(16) and EXTOUT(17) to be the required signal, or
-a zero value if silence is required. Any writes from microcode will override the routing.
+a zero value if silence is required. Any writes from microcode will override the automatic routing.
