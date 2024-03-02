@@ -38,7 +38,7 @@ Scaling of "PT Playback" is even more wierd. It has an exponential character. I 
 
 and something similar for the right channel. Note in there that a logarithm of the data is being taken!
 
-### Two channels of Multichannel Playback produce no sound
+#### Two channels of Multichannel Playback produce no sound
 
 Channels 13 & 14 end up silent. The reason seems to be an incorrect setup in the driver's default send routing:
 
