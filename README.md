@@ -29,7 +29,7 @@ The naming of some of these is a little misleading. "PT Playback" seems to be in
 AC'97 ADC but it doesn't have to be - it can capture from any function on the EMU10K1 and there's no ADC (or indeed Mic input) on the EMU10K1. And "Mic Capture" appears to have no use on the SoundBlaster cards - the AC'97 on these cards have only a single stereo capture channel and that's 
 perfectly well handled by "ADC Capture". Most likely "Mic Capture" is intended for cards with a separate (low-fidelity) analogue in addition to the AC'97, and these cards don't have that extra circuitry.
 
-When "ADC Capture" is used with a sample rate of other than 48000 Hz, it is presumably being down-sampled in hardware using Creative's patented algorithm for doing so.
+When "ADC Capture" is used with a sample rate of other than 48000 Hz, it is presumably being down-sampled in hardware using Creative's algorithm as patented by Savell & Rossum.
 
 Documentation for the EMU10K1 states that "FX Capture" works with any number of channels up to 32, but on my setup (possibly related to the version of the driver I have) it seems to only work with powers-of-two: 1, 2, 4, 8, 16 or 32. See also the
 troubleshooting for an issue when 16 or 32 channels is selected.
