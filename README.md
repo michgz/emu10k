@@ -74,7 +74,7 @@ This sort of works: as expected, 4 of the recorded channels contain sound but it
 ## AC'97 slot investigation
 
 Investigating the association between EMU10K1 External Outs and AC'97 input slots has shown up the following, with the investigation running on a CT4760 soundcard which has a STAC9721 chip
-and a SB0060 card which has a STAC9708 chip. The experiment was done using microcode to forward signals from the ADC playback device to various EXTOUTs on the EMU10K1 and finding
+and a SB0060 card which has a STAC9708 chip. The experiment was done using microcode to forward signals from the Standard PCM Playback device to various EXTOUTs on the EMU10K1 and finding
 which settings on the AC'97 chip resulted in sound being produced.
 
 
@@ -154,7 +154,7 @@ EXTIN(15) -> FXBUS2(15)
 
 This makes sense - in a simple application where loading of microcode is not required, there needs to be some way to
 get playback channels to physical outputs, and similarly physical inputs to record channels. A problem
-arises though with certain AC'97 setups, because EXTIN(0) and EXTIN(1) are inputs from the AC'97 on slots 3 & 4, while EXTOUT(16) and
+arises though with certain AC'97 setups, because EXTIN(0) and EXTIN(1) are inputs from the AC'97 on slots 3 and 4, while EXTOUT(16) and
 EXTOUT(17) are outputs to slots 11 and 7 of the AC'97. It's possible to set things up so that this automatic routing produces a nasty
 feedback loop though the analogue of the AC'97.
 
