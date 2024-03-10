@@ -23,16 +23,12 @@ Returns:
 This has been confirmed bit-exact by comparing against FX8010 with many trial inputs.
 """
 
+import math
+
 def iLOG(V, X, Y):
 
 	X = X % 32     # Just repeats after 31.
 	Y = Y % 4      # Just repeats after 3.
-
-	if V == 0:
-		if Y == 2 or Y == 3:
-			return 0xFFFFFFFF
-		else:
-			return 0
 
 	Z = 0
 	S = 0
@@ -44,7 +40,10 @@ def iLOG(V, X, Y):
 		if Y == 2 or Y == 3:
 			S = 1
 
-	if X >= 16:
+	if V == 0:
+		Z = 0
+
+	elif X >= 16:
 		
 		M = math.log2(V)
 		if M <= (32-X):

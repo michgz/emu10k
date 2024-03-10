@@ -101,7 +101,7 @@ def iEXP(V, X, Y):
 				cannot produce this as output, however it's been verified that this is
 				how the FX8010 behaves when given this input.
 				"""
-				return 1<<(M-X-2) | (V>>(X+29-M))
+				Z = 1<<(M-X-2) | (V>>(X+29-M))
 			elif (M-X+3)>=0:
 				Z =  (V | 0x08000000)<<(M-X+3)
 			else:
@@ -124,7 +124,7 @@ def iEXP(V, X, Y):
 				cannot produce this as output, however it's been verified that this is
 				how the FX8010 behaves when given this input.
 				"""
-				return 1<<(M-X-2) | (V>>(X+28-M))
+				Z = 1<<(M-X-2) | (V>>(X+28-M))
 			elif (M-X+4)>=0:
 				Z = (V | 0x04000000)<<(M-X+4)
 			else:
