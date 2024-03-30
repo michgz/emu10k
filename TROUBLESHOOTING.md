@@ -38,6 +38,15 @@ Scaling of "PT Playback" is even more wierd. It has an exponential character. I 
 
 and something similar for the right channel. Note in there that a logarithm of the data is being taken!
 
+#### PT Playback requires acode
+
+The "Trigger" and "Running" flags used by the PT Playback device are handled by microcode which is loaded by the ALSA initialisation. If the relevant microcode is overwritten then playback will fail with a message "input/output error". With my version of Linux the microcode regions required for playback to work are:
+
+ * 0x0C - 0x17 inclusive
+ * 0x22 - 0x2F inclusive
+
+but this may change with other versions of Linux
+
 #### Two channels of Multichannel Playback produce no sound
 
 Channels 13 & 14 end up silent. The reason seems to be an incorrect setup in the driver's default send routing:
