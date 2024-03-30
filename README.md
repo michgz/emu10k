@@ -19,7 +19,7 @@ aplay -D hw:CARD=Live,DEV=3 -M Tofile.wav
 | Direction | Number    |  Name                 | Channel counts supported |   Sample rates supported (Hz)    | Mechanism used |   Notes          |
 |-----------|-----------|-----------------------|--------------------------|----------------------------------|----------------|------------------|
 |  Playback |  Device 0 | Standard PCM Playback |   1 or 2                 |  Any, up to 48000                | Voices         | See troubleshooting notes below  |
-|  Playback |  Device 2 | PT Playback           |   1 or 2                 |   ?                              | External TRAM  |                   |
+|  Playback |  Device 2 | PT Playback           |   2                      |  48000                           | External TRAM  | Requires certain microcode to be loaded                  |
 |  Playback |  Device 3 | Multichannel Playback |   16                     |  48000                           | Voices         | Memory-mapped; with `aplay` must use '-M' option |
 |  Record   |  Device 0 | ADC Capture           |   1 or 2                 | 48000, 44100, 8000 (and a few others) | ADC Capture    |                            |
 |  Record   |  Device 1 | Mic Capture           |   1                      |   8000                           | Mic Capture    |                                 |
