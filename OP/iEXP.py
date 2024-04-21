@@ -37,7 +37,7 @@ def iEXP(V, X, Y):
 		
 	if Y == 1:
 		S = 0
-  elif Y == 2:
+	elif Y == 2:
 		S = 1
 	elif Y == 3:
 		S = 1-S

@@ -24,6 +24,7 @@ This has been confirmed bit-exact by comparing against FX8010 with many trial in
 """
 
 import math
+import __init__
 
 def iLOG(V, X, Y):
 
@@ -40,78 +41,97 @@ def iLOG(V, X, Y):
 		if Y == 2 or Y == 3:
 			S = 1
 
+	BORROW_FLAG = 0
+
+
 	if V == 0:
 		Z = 0
 
-	elif X >= 16:
+	else:
+
+		M = math.floor(math.log2(V))
 		
-		M = math.log2(V)
-		if M <= (32-X):
-			Z = V << (X-5)
+		# Deal with the Borrow flag
+		if M >= (31-X):
+			BORROW_FLAG=1
+
+		if M < (32-X):
+			if X >= 16:
+				Z = V << (X-5)
+			elif X >= 8:
+				Z = V << (X-4)
+			elif X >= 4:
+				Z = V << (X-3)
+			elif X >= 2:
+				Z = V << (X-2)
+			elif X == 1:
+				Z = V << (X-1)
+			elif X == 0:
+				Z = V >> 1
 		else:
-			P = int(M) - (30-X)
-			if P >= (X-4):
-				"""
-				This code path is impossible; kept here simply for comparison with cases
-				below.
-				"""
-				Q = (V >> (P-(X-4))) - 0x04000000
-			else:
-				Q = (V << ((X-4)-P)) - 0x04000000
 
-			Z = 0x04000000*P + Q
+			P = M - (30-X)
 
-	elif X >= 8:
-		
-		M = math.log2(V)
-		if M <= (32-X):
-			Z = V << (X-4)
-		else:
-			P = int(M) - (30-X)
-			if P >= (X-3):
-				Q = (V >> (P-(X-3))) - 0x08000000
-			else:
-				Q = (V << ((X-3)-P)) - 0x08000000
+			if X >= 16:
 
-			Z = 0x08000000*P + Q
-		
-	elif X >= 4:
+				if M >= 26:
+					"""
+					This code path is impossible; kept here simply for comparison with cases
+					below.
+					"""
+					Q = (V >> (M-26)) - 0x04000000
+				else:
+					Q = (V << (26-M)) - 0x04000000
 
-		M = math.log2(V)
-		if M <= (32-X):
-			Z = V << (X-3)
-		else:
-			P = int(M) - (30-X)
-			if P >= (X-2):
-				Q = (V >> (P-(X-2))) - 0x10000000
-			else:
-				Q = (V << ((X-2)-P)) - 0x10000000
-			Z = 0x10000000*P + Q
+				Z = 0x04000000*P + Q
 
-	elif X >= 2:
+			elif X >= 8:
 
-		M = math.log2(V)
-		if M <= (32-X):
-			Z = V << (X-2)
-		else:
-			P = int(M) - (30-X)
-			if P >= (X-1):
-				Q = (V >> (P-(X-1))) - 0x20000000
-			else:
-				Q = (V >> ((X-1)-P)) - 0x20000000
-			Z = 0x20000000*P + Q
+				if M >= 27:
+					Q = (V >> (M-27)) - 0x08000000
+				else:
+					Q = (V << (27-M)) - 0x08000000
+
+				Z = 0x08000000*P + Q
 			
-		
-	elif X == 1:
+			elif X >= 4:
 
-		Z = V   # This is purely linear
+				if M >= 28:
+					Q = (V >> (M-28)) - 0x10000000
+				else:
+					Q = (V << (28-M)) - 0x10000000
+				Z = 0x10000000*P + Q
 
-	elif X == 0:
-		
-		Z = V//2  # Also linear
-		
+			elif X >= 2:
+
+				if M >= 29:
+					Q = (V >> (M-29)) - 0x20000000
+				else:
+					Q = (V >> (29-M)) - 0x20000000
+				Z = 0x20000000*P + Q
+
+			else:
+				"""
+				X = 0 or 1 case. Impossible to get here
+				"""
+				raise Exception
+
+
 	if S != 0:
 		Z = (Z ^ 0x7FFFFFFF) + 0x80000000
+
+	SAT_FLAG = 0
+	NORM_FLAG = 1
+
+	"""
+	Update the condition register (implemented here as a global variable)
+	"""
+	__init__.GPR_COND = (0x08 if Z==0 else 0)           \
+					  + (0x04 if Z>=0x80000000 else 0)  \
+					  + (0x10 if SAT_FLAG else 0)       \
+					  + (0x01 if BORROW_FLAG else 0)    \
+					  + (0x02 if NORM_FLAG else 0)
+
 	return Z
 
 
