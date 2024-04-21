@@ -35,22 +35,24 @@ def iEXP(V, X, Y):
 		V = V ^ 0x7FFFFFFF
 		S = 1
 		
-	if Y == 2:
+	if Y == 1:
+		S = 0
+  elif Y == 2:
 		S = 1
 	elif Y == 3:
 		S = 1-S
 
 	
-	if X==1:
-		Z = V
-	elif X==0:
+	if X==0:
 		Z = 2*V
+	elif X==1:
+		Z = V
 	
 	elif X<4:
 		M = V >> 29
 		
-		if M == 0 or M==1:
-			Z =  V>>(X-2)
+		if M==0 or M==1:
+			Z = V>>(X-2)
 		else:
 			V = V & 0x1FFFFFFF
 
@@ -61,15 +63,13 @@ def iEXP(V, X, Y):
 				"""
 				return 1<<(M-X-2) | (V>>(X+31-M))
 			else:
-				Z =  (V | 0x20000000)<<(M-X+1)
+				Z = (V | 0x20000000)<<(M-X+1)
 
 	elif X<8:
 		M = V >> 28
 		
-		if M==0:
-			Z =  V>>(X-3)
-		elif M==1:
-			Z =  V>>(X-3)
+		if M==0 or M==1:
+			Z = V>>(X-3)
 		else:
 			V = V & 0x0FFFFFFF
 			
@@ -81,17 +81,15 @@ def iEXP(V, X, Y):
 				"""
 				Z = 1<<(M-X-2) | (V>>(X+30-M))
 			elif (M-X+2)>=0:
-				Z =  (V | 0x10000000)<<(M-X+2)
+				Z = (V | 0x10000000)<<(M-X+2)
 			else:
-				Z =  (V | 0x10000000)>>(-(M-X+2))
+				Z = (V | 0x10000000)>>(-(M-X+2))
 				
 	elif X<16:
 		M = V >> 27
 		
-		if M==0:
-			Z =  V>>(X-4)
-		elif M==1:
-			Z =  V>>(X-4)
+		if M==0 or M==1:
+			Z = V>>(X-4)
 		else:
 			V = V & 0x07FFFFFF
 			
@@ -103,20 +101,18 @@ def iEXP(V, X, Y):
 				"""
 				Z = 1<<(M-X-2) | (V>>(X+29-M))
 			elif (M-X+3)>=0:
-				Z =  (V | 0x08000000)<<(M-X+3)
+				Z = (V | 0x08000000)<<(M-X+3)
 			else:
-				Z =  (V | 0x08000000)>>(-(M-X+3))
+				Z = (V | 0x08000000)>>(-(M-X+3))
 
 
 	elif X<32:
 		M = V >> 26
 		
-		if M==0:
-			Z = V>>(X-5)
-		elif M==1:
+		if M==0 or M==1:
 			Z = V>>(X-5)
 		else:
-			V = V & 0x07FFFFFF
+			V = V & 0x07FFFFFF  # TODO: confirm this. It breaks the pattern!
 			
 			if M > (X+1):
 				"""
@@ -131,14 +127,15 @@ def iEXP(V, X, Y):
 				Z = (V | 0x04000000)>>(-(M-X+4))
 
 	if S == 1:
-		if Y == 1:
-			return Z
-		elif Z >= 0xFFFFFFFC:
-			return Z
+		if Z >= 0xFFFFFFFC:
+			"""
+			Special behaviour is followed for negative numbers very close to zero.
+			"""
+			pass
 		else:
-			return 0x00000000 | (Z ^ 0xFFFFFFFF)
-	else:
-		return Z
+			Z = (Z ^ 0xFFFFFFFF)
+	
+	return Z
 
 
 if __name__=="__main__":

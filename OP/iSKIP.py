@@ -2,11 +2,11 @@
 def iSKIP(V, X, Y):
 	"""
 	Returns True if will skip, False if will not skip.
-  Params:
-    V: the contents of the GPR_COND register
-    X: the condition word
-    Y: the number of spaces to skip. Unused in this function, as this simply
-        returns True or False for whether or not the skip happens at all
+	Params:
+	  V: the contents of the GPR_COND register
+	  X: the condition word
+	  Y: the number of spaces to skip. Unused in this function, as this simply
+	      returns True or False for whether or not the skip happens at all
 	"""
 	
 	"""

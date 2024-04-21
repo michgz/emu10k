@@ -50,7 +50,11 @@ def iLOG(V, X, Y):
 			Z = V << (X-5)
 		else:
 			P = int(M) - (30-X)
-			if P >= (X-4):  # Always false??
+			if P >= (X-4):
+				"""
+				This code path is impossible; kept here simply for comparison with cases
+				below.
+				"""
 				Q = (V >> (P-(X-4))) - 0x04000000
 			else:
 				Q = (V << ((X-4)-P)) - 0x04000000
@@ -100,11 +104,11 @@ def iLOG(V, X, Y):
 		
 	elif X == 1:
 
-		Z = V   # This is purely linear??
+		Z = V   # This is purely linear
 
 	elif X == 0:
 		
-		Z = V//2  # Also linear??
+		Z = V//2  # Also linear
 		
 	if S != 0:
 		Z = (Z ^ 0x7FFFFFFF) + 0x80000000
