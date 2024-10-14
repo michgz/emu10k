@@ -12,6 +12,19 @@ Attached a configuration file for 86Box version 4.2.1, suitable for running an
 emulated Windows 95 with CD-ROM drive. Additionally two CD-ROM images are
 required:
 
- * Windows 95 Installer
- 
- * Creative SoundBlaster Live! Installation disk
+ * Creative SoundBlaster Live! Installation CD
+ * Microsoft Windows 95 installation CD
+ * Windows 95 boot floppy
+ * CD-ROM drivers. I managed to find a set only called CD1.SYS, CD2.SYS, CD3.SYS, CD4.SYS and found that CD4.SYS worked well for both 86box and QEMU (although I didn't try them all -- maybe others would also work).
+
+The CD-ROM hardware must be enabled by creating two files:
+
+C:\CONFIG.SYS:
+```
+DEVICE=C:\CD4.SYS /D:MSCD001
+```
+
+C:\AUTOEXEC.BAT:
+```
+C:\WINDOWS\COMMAND\MSCDEX.EXE /D:MSCD001 /L:D
+```
