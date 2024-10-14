@@ -15,9 +15,9 @@ required:
  * Creative SoundBlaster Live! Installation CD
  * Microsoft Windows 95 installation CD
  * Windows 95 boot floppy
- * CD-ROM drivers. I managed to find a set only called CD1.SYS, CD2.SYS, CD3.SYS, CD4.SYS and found that CD4.SYS worked well for both 86box and QEMU (although I didn't try them all -- maybe others would also work).
+ * CD-ROM drivers. I managed to find a set online called CD1.SYS, CD2.SYS, CD3.SYS, CD4.SYS and found that CD4.SYS worked well for both 86box and QEMU (although I didn't try them all -- maybe others would also work).
 
-The CD-ROM hardware must be enabled by creating two files:
+The CD-ROM hardware must be enabled by creating two files with the following content:
 
 C:\CONFIG.SYS:
 ```
